@@ -35,17 +35,17 @@ button.big{width:100%;padding:14px;font-size:1.05rem}
 .chip button.h:not(:last-child){}
 .court{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:10px}
 .court h3{margin:0;padding:8px 12px;font-size:.85rem;background:var(--bg);color:var(--acc);letter-spacing:.04em}
-.teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch}
-.team{padding:12px;font-weight:600;line-height:1.5}
+.teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch}
+.team{padding:10px 8px;font-weight:600;line-height:1.6;min-width:0}
 .team.a{background:var(--a)}.team.b{background:var(--b);text-align:right}
-.vs{display:flex;align-items:center;padding:0 8px;color:var(--mute);font-size:.8rem}
-.wins{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 10px 0;border-top:1px solid var(--line)}.wins button{padding:9px}.wins button.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
+.vs{display:flex;align-items:center;padding:0 4px;color:var(--mute);font-size:.8rem}
+.wins{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;padding:10px 10px 0;border-top:1px solid var(--line)}.wins button{padding:9px}.wins button.on{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
 .score{display:flex;gap:8px;align-items:center;justify-content:center;padding:10px}
 .score input{flex:0 0 76px;text-align:center}
 .chip.on{background:var(--a);border-color:var(--acc);padding-right:12px}
 .danger{background:#c92a2a!important;color:#fff!important;border-color:#c92a2a!important}
 .court h3{display:flex;justify-content:space-between;align-items:center}
-.pl{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pl{display:flex;justify-content:space-between;align-items:center;gap:4px;min-width:0}
 .team.b .pl{flex-direction:row-reverse}
 .pl.open{color:var(--mute);font-weight:400;font-style:italic}
 .sk{padding:3px 9px;font-size:.72rem;border-radius:99px;background:transparent;color:var(--warn);border:1px solid var(--warn);font-weight:600}
@@ -56,6 +56,11 @@ button.big{width:100%;padding:14px;font-size:1.05rem}
 .isorow small{color:var(--mute);display:block}
 .isorow button{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:600}
 .tab[hidden]{display:none}
+.tb{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:5px;font-size:.68rem;font-weight:800;color:#0a1430;vertical-align:middle;flex:none}
+.rk-S{background:#f5c542}.rk-A{background:#ff8a5c}.rk-B{background:#c49bff}.rk-C{background:#5db2ff}.rk-D{background:#5fd39a}.rk-E{background:#aab6d6}
+.grow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.grow .tb{min-width:26px;height:26px;font-size:.9rem;border-radius:7px}
+.grow b{width:78px}
 .rb{margin-left:6px;color:var(--mute);font-weight:400;font-size:.75rem;text-transform:none}
 .lv{display:block;color:var(--mute);font-size:.7rem;font-weight:400}
 .up{color:#6ee7a0}.dn{color:#ff9b9b}.dl{margin-left:4px;font-size:.7rem}
@@ -68,7 +73,12 @@ button.big{width:100%;padding:14px;font-size:1.05rem}
 .av img{width:100%;height:100%;object-fit:cover}
 .av.em{background:var(--a)}
 .avb{padding:0;border:0;background:none;border-radius:50%;line-height:0;cursor:pointer}
-.pn{display:inline-flex;align-items:center}
+.pn{display:inline-flex;align-items:center;min-width:0}
+.tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.team .av{margin-right:4px}
+.team.b .tb{margin:0 4px 0 0}
+.team .tb{margin-left:4px}
+@media (max-width:420px){.team{font-size:.9rem}.sk{padding:3px 7px}}
 .team.b .pn{flex-direction:row-reverse}
 .team.b .av{margin:0 0 0 6px}
 #avmodal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
@@ -103,11 +113,21 @@ td.held{color:var(--mute)}
 <div class="card">
 <h2>Players (<span id="cnt">0</span>)</h2>
 <div class="row"><input id="name" placeholder="Add player name" maxlength="30"><input id="rate" type="number" inputmode="decimal" step="0.1" min="2" max="6" value="3.0" style="flex:0 0 72px" aria-label="Rating"><button class="p" id="add">Add</button></div>
-<div class="empty" style="margin-top:8px">Rating: <b id="lvl">Intermediate</b>. This is the starting skill level; match results adjust it over time. Tap an avatar to change the avatar or rating.</div>
+<div class="empty" style="margin-top:8px">Rating: <b id="lvl">D · Intermediate</b>. This is the starting skill level; match results adjust it over time. Tap an avatar to change the avatar or rating.</div>
 <div class="chips" id="chips"></div>
 </div>
 
 <div class="row"><button id="reset">Reset rounds &amp; stats</button><button id="clearall">Clear all players</button></div>
+<div class="card" id="guide" style="margin-top:14px">
+<h2>Rating guide</h2>
+<div class="grow"><span class="tb rk-S">S</span><b>5.0+</b><span>Elite</span></div>
+<div class="grow"><span class="tb rk-A">A</span><b>4.5–4.99</b><span>Expert</span></div>
+<div class="grow"><span class="tb rk-B">B</span><b>4.0–4.49</b><span>Advanced</span></div>
+<div class="grow"><span class="tb rk-C">C</span><b>3.5–3.99</b><span>Strong Intermediate</span></div>
+<div class="grow"><span class="tb rk-D">D</span><b>3.0–3.49</b><span>Intermediate</span></div>
+<div class="grow" style="border:0"><span class="tb rk-E">E</span><b>2.0–2.99</b><span>Beginner</span></div>
+<div class="empty" style="margin-top:8px">Enter the closest rating when adding a player. It adjusts automatically with wins and losses.</div>
+</div>
 </section>
 <section id="t-play" class="tab" hidden>
 <div class="card">
@@ -178,6 +198,10 @@ const valid=c=>Number.isFinite(c.sa)&&Number.isFinite(c.sb)&&c.sa!==c.sb;
 const isOpen=c=>{const n=c.n||0;return !!n&&(c.A.length<n||c.B.length<n)};
 const winner=c=>isOpen(c)?null:(c.win||(valid(c)?(c.sa>c.sb?"a":"b"):null));
 
+const tier=r=>r>=5?"S":r>=4.5?"A":r>=4?"B":r>=3.5?"C":r>=3?"D":"E";
+const badge=r=>`<span class="tb rk-${tier(r)}">${tier(r)}</span>`;
+const short=t=>t.length>6?t.slice(0,5)+"…":t;
+const sn=id=>{const p=S.players.find(x=>x.id===id);return p?esc(short(p.name)):"?"};
 function level(r){return r>=5?"Elite":r>=4.5?"Expert":r>=4?"Advanced":r>=3.5?"Strong Intermediate":r>=3?"Intermediate":"Beginner"}
 const clampR=v=>Math.min(6,Math.max(2,isNaN(v)?3:v));
 let RT={},RG={};
@@ -212,7 +236,7 @@ function openAv(id){avId=id;renderAv();$("avmodal").hidden=false}
 function renderAv(){
   const p=avP();if(!p)return;
   $("avprev").innerHTML=av(p,48);$("avname").textContent=p.name;
-  $("avrate").value=(p.rt??3).toFixed(1);$("avlvl").textContent="Now "+(RT[p.id]??3).toFixed(2)+" · "+level(RT[p.id]??3);
+  $("avrate").value=(p.rt??3).toFixed(1);$("avlvl").textContent="Now "+(RT[p.id]??3).toFixed(2)+" · Rank "+tier(RT[p.id]??3)+" · "+level(RT[p.id]??3);
   $("egrid").innerHTML=EMOJI.map(e=>`<button data-e="${e}" class="${p.av&&p.av.t==="e"&&p.av.v===e?"on":""}">${e}</button>`).join("");
 }
 function addPlayer(){
@@ -279,12 +303,12 @@ function renderRank(){
   const rows=stats();
   $("rank").innerHTML=rows.length?rows.map((x,i)=>{
     const g=x.w+x.l,medal=["🥇","🥈","🥉"][i];
-    return `<tr class="${g&&i<3?"top":""}"><td>${g?(medal||i+1):"–"}</td><td class="${x.p.hold?"held":""}"><span class="pn">${av(x.p,22)}<span>${esc(x.p.name)}${x.p.hold?" (on hold)":""}<small class="lv">${level(x.rt)}</small></span></span></td><td>${x.rt.toFixed(2)}${Math.abs(x.rt-(x.p.rt??3))>=.01?`<small class="dl ${x.rt>(x.p.rt??3)?"up":"dn"}">${x.rt>(x.p.rt??3)?"+":""}${(x.rt-(x.p.rt??3)).toFixed(2)}</small>`:""}</td><td>${x.w}-${x.l}</td><td>${g?Math.round(100*x.w/g)+"%":"–"}</td><td>${g?(x.d>0?"+":"")+x.d:"–"}</td><td>${x.pf||x.pa?x.pf+"-"+x.pa:"–"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">No players yet.</td></tr>';
+    return `<tr class="${g&&i<3?"top":""}"><td>${g?(medal||i+1):"–"}</td><td class="${x.p.hold?"held":""}"><span class="pn">${av(x.p,22)}<span>${esc(x.p.name)}${x.p.hold?" (on hold)":""}<small class="lv">${tier(x.rt)} · ${level(x.rt)}</small></span></span></td><td>${badge(x.rt)} ${x.rt.toFixed(2)}${Math.abs(x.rt-(x.p.rt??3))>=.01?`<small class="dl ${x.rt>(x.p.rt??3)?"up":"dn"}">${x.rt>(x.p.rt??3)?"+":""}${(x.rt-(x.p.rt??3)).toFixed(2)}</small>`:""}</td><td>${x.w}-${x.l}</td><td>${g?Math.round(100*x.w/g)+"%":"–"}</td><td>${g?(x.d>0?"+":"")+x.d:"–"}</td><td>${x.pf||x.pa?x.pf+"-"+x.pa:"–"}</td></tr>`}).join(""):'<tr><td colspan="7" class="empty">No players yet.</td></tr>';
 }
 const outside=()=>S.cur?queue(S.players.filter(p=>!p.hold&&!S.cur.courts.some(c=>c.A.includes(p.id)||c.B.includes(p.id)))):[];
 function team(c,s){
   const a=c[s],n=c.n||a.length;
-  let h=a.map(id=>`<div class="pl"><span class="pn">${av(id,26)}<span>${nm(id)}<small class="rb">${(RT[id]??3).toFixed(1)}</small></span></span><button class="sk" data-sk="${id}">Skip</button></div>`).join("");
+  let h=a.map(id=>`<div class="pl"><span class="pn">${av(id,24)}<span class="tn" title="${nm(id)}">${sn(id)}</span>${badge(RT[id]??3)}</span><button class="sk" data-sk="${id}">Skip</button></div>`).join("");
   for(let x=a.length;x<n;x++)h+='<div class="pl open">— open slot —</div>';
   return h;
 }
@@ -328,7 +352,7 @@ function render(){
   RT=ratings();
   const act=S.players.filter(p=>!p.hold).length;
   $("cnt").textContent=act+(act<S.players.length?" of "+S.players.length:"");
-  $("chips").innerHTML=S.players.length?S.players.map(p=>`<span class="chip${p.hold?" hold":""}"><button class="avb" data-av="${p.id}" aria-label="Change avatar">${av(p,30)}</button><span class="nm">${esc(p.name)}</span> <small>${(RT[p.id]??3).toFixed(1)} · ${p.hold?"on hold":p.played+" played"}</small><button class="h" data-h="${p.id}">${p.hold?"Resume":"Hold"}</button><button class="x" data-r="${p.id}" aria-label="Remove">×</button></span>`).join(""):'<span class="empty">Add the players who showed up.</span>';
+  $("chips").innerHTML=S.players.length?S.players.map(p=>`<span class="chip${p.hold?" hold":""}"><button class="avb" data-av="${p.id}" aria-label="Change avatar">${av(p,30)}</button><span class="nm">${esc(p.name)}</span> <small>${badge(RT[p.id]??3)} ${(RT[p.id]??3).toFixed(1)} · ${p.hold?"on hold":p.played+" played"}</small><button class="h" data-h="${p.id}">${p.hold?"Resume":"Hold"}</button><button class="x" data-r="${p.id}" aria-label="Remove">×</button></span>`).join(""):'<span class="empty">Add the players who showed up.</span>';
   $("m1").className=S.mode===1?"on":"";$("m2").className=S.mode===2?"on":"";
   $("cv").textContent=S.courts;
   const o=$("out");
@@ -336,7 +360,7 @@ function render(){
     o.hidden=false;$("rt").textContent="Round "+S.round;
     $("courts").innerHTML=S.cur.courts.map((c,i)=>`<div class="court">${head(c,i)}<div class="teams"><div class="team a">${team(c,"A")}</div><div class="vs">vs</div><div class="team b">${team(c,"B")}</div></div><div class="wins"><button data-w="a" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='a'?'on':''}">🏆 Winner</button><button data-w="b" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='b'?'on':''}">🏆 Winner</button></div><div class="score"><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sa" value="${c.sa??""}"><span>–</span><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sb" value="${c.sb??""}"></div></div>`).join("");
     const b=S.cur.bench.filter(id=>S.players.some(p=>p.id===id&&!p.hold));
-    $("bench").innerHTML=b.length?"<strong>Sitting out:</strong> "+b.map(nm).join(", "):"Everyone available is playing this round.";
+    $("bench").innerHTML=b.length?"<strong>Sitting out:</strong> "+b.map(sn).join(", "):"Everyone available is playing this round.";
   }else o.hidden=true;
   renderIso();
   renderRank();renderDeck();
@@ -379,7 +403,7 @@ $("cp").onclick=()=>{S.courts=Math.min(12,S.courts+1);save();render()};
 $("go").onclick=generate;
 $("egrid").onclick=e=>{const b=e.target.closest("[data-e]"),p=avP();if(!b||!p)return;p.av={t:"e",v:b.dataset.e};save();renderAv();render()};
 $("avrate").onchange=()=>{const p=avP();if(!p)return;p.rt=Math.round(clampR(parseFloat($("avrate").value))*100)/100;save();render();renderAv()};
-$("rate").oninput=()=>{$("lvl").textContent=level(clampR(parseFloat($("rate").value)))};
+$("rate").oninput=()=>{{const v=clampR(parseFloat($("rate").value));$("lvl").textContent=tier(v)+" · "+level(v)}};
 $("avini").onclick=()=>{const p=avP();if(!p)return;p.av=null;save();renderAv();render()};
 $("avup").onclick=()=>$("avfile").click();
 $("avfile").onchange=e=>{
