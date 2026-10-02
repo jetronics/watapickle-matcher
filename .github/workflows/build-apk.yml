@@ -17,6 +17,11 @@ jobs:
           java-version: 17
       - run: npm install
       - run: npx cap add android
+      - name: Allow camera
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n</manifest>|' $M
+          grep -n CAMERA $M
       - run: pip install pillow
       - name: Make app icon
         run: python make_icons.py
