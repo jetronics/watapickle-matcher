@@ -179,8 +179,9 @@ td.held{color:var(--mute)}
 <div class="row" style="justify-content:space-between"><div class="row"><span id="avprev"></span><b id="avname"></b></div><button id="avdone" class="p">Done</button></div>
 <div class="row" style="margin-top:12px"><label for="avrate">Rating</label><input id="avrate" type="number" inputmode="decimal" step="0.1" min="2" max="6" style="flex:0 0 80px"><span id="avlvl" class="empty"></span></div>
 <div class="egrid" id="egrid"></div>
-<div class="row"><button id="avup">📷 Upload photo</button><button id="avini">Use initials</button></div>
+<div class="row"><button id="avshot">📸 Take photo</button><button id="avup">🖼 Choose photo</button><button id="avini">Initials</button></div>
 <input type="file" id="avfile" accept="image/*" hidden>
+<input type="file" id="avcam" accept="image/*" capture="user" hidden>
 </div></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -406,7 +407,7 @@ $("avrate").onchange=()=>{const p=avP();if(!p)return;p.rt=Math.round(clampR(pars
 $("rate").oninput=()=>{{const v=clampR(parseFloat($("rate").value));$("lvl").textContent=tier(v)+" · "+level(v)}};
 $("avini").onclick=()=>{const p=avP();if(!p)return;p.av=null;save();renderAv();render()};
 $("avup").onclick=()=>$("avfile").click();
-$("avfile").onchange=e=>{
+const photo=e=>{
   const f=e.target.files[0],p=avP();e.target.value="";if(!f||!p)return;
   const fr=new FileReader();
   fr.onload=()=>{const im=new Image();im.onload=()=>{
@@ -416,6 +417,8 @@ $("avfile").onchange=e=>{
     p.av={t:"p",v:c.toDataURL("image/jpeg",.8)};save();renderAv();render()};im.src=fr.result};
   fr.readAsDataURL(f);
 };
+$("avfile").onchange=photo;$("avcam").onchange=photo;
+$("avshot").onclick=()=>$("avcam").click();
 $("avdone").onclick=()=>{$("avmodal").hidden=true;avId=null};
 $("avmodal").onclick=e=>{if(e.target.id==="avmodal")$("avdone").onclick()};
 function showTab(t){
