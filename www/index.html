@@ -50,6 +50,7 @@ button.big{width:100%;padding:14px;font-size:1.05rem}
 .pl.open{color:var(--mute);font-weight:400;font-style:italic}
 .sk{padding:3px 9px;font-size:.72rem;border-radius:99px;background:transparent;color:var(--warn);border:1px solid var(--warn);font-weight:600}
 .wins button:disabled{opacity:.4;cursor:not-allowed}
+.nextm{padding:0 10px 10px}.nextm button{width:100%;padding:11px;font-weight:700}.nextm button:disabled{opacity:.4;cursor:not-allowed}.nextm small{display:block;text-align:center;color:var(--mute);margin-top:6px;font-size:.75rem}
 .iso{border:2px dashed var(--warn);background:#2b2410}
 .iso h2{color:var(--warn)}
 .isorow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -380,6 +381,45 @@ function fill(i){
   S.cur.bench=S.cur.bench.filter(b=>b!==p.id);p.played++;p.sat=0;
   save();render();
 }
+function nextMatch(i){
+  if(!S.cur)return;
+  const old=S.cur.courts[i];
+  if(!old||!winner(old))return;
+  S.hist.push({A:old.A,B:old.B,sa:old.sa,sb:old.sb,win:winner(old)});
+  const per=S.mode===2?4:2,n=per/2;
+  const onCourt=new Set();
+  S.cur.courts.forEach((c,j)=>{if(j!==i){c.A.forEach(x=>onCourt.add(x));c.B.forEach(x=>onCourt.add(x))}});
+  const justDone=new Set([...old.A,...old.B]);
+  const nc={A:[],B:[],n,sa:null,sb:null,win:null};
+  S.cur.courts[i]=nc; // placeholder so the finished match isn't counted twice
+  const R=ratings(true);
+  const pick=queue(S.players.filter(p=>!p.hold&&!onCourt.has(p.id))).slice(0,per);
+  S.players.forEach(p=>p.r=Math.random());
+  pick.forEach(p=>{R[p.id]+=(Math.random()-.5)*.16});
+  if(pick.length===per){
+    const g=pick.map(p=>p.id).sort((a,b)=>R[b]-R[a]);
+    if(n===2){
+      const opts=[[[g[0],g[3]],[g[1],g[2]]],[[g[0],g[2]],[g[1],g[3]]],[[g[0],g[1]],[g[2],g[3]]]];
+      const av2=t=>(R[t[0]]+R[t[1]])/2;
+      const cost=o=>Math.abs(av2(o[0])-av2(o[1]))+0.12*((S.partner[k(...o[0])]||0)+(S.partner[k(...o[1])]||0));
+      const o=opts.reduce((b,x)=>cost(x)<cost(b)?x:b);
+      nc.A=o[0];nc.B=o[1];
+      S.partner[k(...nc.A)]=(S.partner[k(...nc.A)]||0)+1;S.partner[k(...nc.B)]=(S.partner[k(...nc.B)]||0)+1;
+    }else{nc.A=[g[0]];nc.B=[g[1]]}
+    for(const x of nc.A)for(const y of nc.B)S.opp[k(x,y)]=(S.opp[k(x,y)]||0)+1;
+  }else{ // not enough players free: fill what we can, rest stays as open slots
+    pick.forEach(p=>nc[nc.A.length<n?"A":"B"].push(p.id));
+  }
+  const on=new Set(pick.map(p=>p.id));
+  S.players.forEach(p=>{
+    if(on.has(p.id)){p.played++;p.sat=0}
+    else if(!p.hold&&!onCourt.has(p.id)&&!justDone.has(p.id))p.sat++;
+  });
+  S.cur.bench=S.players.filter(p=>!onCourt.has(p.id)&&!on.has(p.id)).map(p=>p.id);
+  const m=$("msg");
+  if(pick.length<per){m.textContent="Court "+(i+1)+(pick.length?" has open slots":" is empty")+" — not enough free players yet. Add or resume players, then tap Fill open slot.";setTimeout(()=>m.textContent="",5000)}
+  save();render();
+}
 function renderIso(){
   const h=S.players.filter(p=>p.hold);
   $("isocard").hidden=!h.length;$("isocnt").textContent=h.length;
@@ -387,6 +427,13 @@ function renderIso(){
 }
 function renderDeck(){
   const per=S.mode===2?4:2,pool=S.players.filter(p=>!p.hold);
+  if(S.cur&&outside().length){
+    const q=outside(),c=$("deckcard");c.hidden=false;
+    $("deck").innerHTML=q.slice(0,per).map((p,i)=>`<span class="chip on">${av(p,24)}<b>${i+1}</b>&nbsp;${esc(p.name)}</span>`).join("");
+    $("deckq").innerHTML=q.length>per?"<strong>Waiting:</strong> "+q.slice(per).map(p=>esc(p.name)).join(", "):(q.length<per?"Need "+(per-q.length)+" more free player"+(per-q.length===1?"":"s")+" for the next match.":"Everyone else is on court.");
+    $("deckhint").textContent="These players take the next court that finishes. Tap Match done on a court to send them in.";
+    return;
+  }
   const n=Math.min(S.courts,Math.floor(pool.length/per))*per,c=$("deckcard");
   if(n<1){c.hidden=true;return}
   c.hidden=false;
@@ -406,7 +453,7 @@ function render(){
   const o=$("out");
   if(S.cur){
     o.hidden=false;$("rt").textContent="Round "+S.round;
-    $("courts").innerHTML=S.cur.courts.map((c,i)=>`<div class="court">${head(c,i)}<div class="teams"><div class="team a">${team(c,"A")}</div><div class="vs">vs</div><div class="team b">${team(c,"B")}</div></div><div class="wins"><button data-w="a" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='a'?'on':''}">🏆 Winner</button><button data-w="b" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='b'?'on':''}">🏆 Winner</button></div><div class="score"><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sa" value="${c.sa??""}"><span>–</span><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sb" value="${c.sb??""}"></div></div>`).join("");
+    $("courts").innerHTML=S.cur.courts.map((c,i)=>`<div class="court">${head(c,i)}<div class="teams"><div class="team a">${team(c,"A")}</div><div class="vs">vs</div><div class="team b">${team(c,"B")}</div></div><div class="wins"><button data-w="a" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='a'?'on':''}">🏆 Winner</button><button data-w="b" data-c="${i}" ${isOpen(c)?"disabled":""} class="${winner(c)==='b'?'on':''}">🏆 Winner</button></div><div class="score"><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sa" value="${c.sa??""}"><span>–</span><input type="number" inputmode="numeric" min="0" placeholder="Score (optional)" data-c="${i}" data-s="sb" value="${c.sb??""}"></div><div class="nextm"><button class="p" data-next="${i}" ${winner(c)?"":"disabled"}>✅ Match done · Next match ▶</button>${winner(c)?"":'<small>Pick a winner to free this court</small>'}</div></div>`).join("");
     const b=S.cur.bench.filter(id=>S.players.some(p=>p.id===id&&!p.hold));
     $("bench").innerHTML=b.length?"<strong>Sitting out:</strong> "+b.map(sn).join(", "):"Everyone available is playing this round.";
   }else o.hidden=true;
@@ -429,12 +476,14 @@ $("courts").oninput=e=>{
   c[t.dataset.s]=t.value===""?null:Math.max(0,parseInt(t.value,10));
   if(valid(c))c.win=c.sa>c.sb?"a":"b";
   document.querySelectorAll('[data-w][data-c="'+t.dataset.c+'"]').forEach(x=>x.classList.toggle("on",winner(c)===x.dataset.w));
+  {const nb=document.querySelector('[data-next="'+t.dataset.c+'"]');if(nb){nb.disabled=!winner(c);const h=nb.parentNode.querySelector("small");if(h)h.hidden=!!winner(c)}}
   save();renderRank();
 };
 $("isolist").onclick=e=>{const h=+e.target.dataset.h;if(h)toggleHold(h)};
 $("courts").onclick=e=>{
   const sk=e.target.closest("[data-sk]"),fl=e.target.closest("[data-fill]");
   if(fl){fill(+fl.dataset.fill);return}
+  const nx=e.target.closest("[data-next]");if(nx){nextMatch(+nx.dataset.next);return}
   if(sk){
     if(sk.dataset.arm){skipPlayer(+sk.dataset.sk);return}
     sk.dataset.arm="1";sk.textContent="Sure?";sk.classList.add("danger");
